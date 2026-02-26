@@ -54,59 +54,7 @@ def get_palette(num_cls):
     return palette
 
 
-class Normalize_image(object):
-    """Normalize given tensor into given mean and standard dev
-
-    Args:
-        mean (float): Desired mean to substract from tensors
-        std (float): Desired std to divide from tensors
-    """
-
-    def __init__(self, mean, std):
-        assert isinstance(mean, (float))
-        if isinstance(mean, float):
-            self.mean = mean
-
-        if isinstance(std, float):
-            self.std = std
-
-        self.normalize_1 = transforms.Normalize(self.mean, self.std)
-        self.normalize_3 = transforms.Normalize([self.mean] * 3, [self.std] * 3)
-        self.normalize_18 = transforms.Normalize([self.mean] * 18, [self.std] * 18)
-
-    def __call__(self, image_tensor):
-        if image_tensor.shape[0] == 1:
-            return self.normalize_1(image_tensor)
-
-        elif image_tensor.shape[0] == 3:
-            return self.normalize_3(image_tensor)
-
-        elif image_tensor.shape[0] == 18:
-            return self.normalize_18(image_tensor)
-
-        else:
-            assert "Please set proper channels! Normlization implemented only for 1, 3 and 18"
-
-
-
-
-def apply_transform(img):
-    transforms_list = []
-    transforms_list += [transforms.ToTensor()]
-    transforms_list += [Normalize_image(0.5, 0.5)]
-    transform_rgb = transforms.Compose(transforms_list)
-    return transform_rgb(img)
-
-
-
 def generate_mask(input_image, net, palette, device = 'cpu'):
-
-    #img = Image.open(input_image).convert('RGB')
-    img = input_image
-    img_size = img.size
-    img = img.resize((768, 768), Image.BICUBIC)
-    image_tensor = apply_transform(img)
-    image_tensor = torch.unsqueeze(image_tensor, 0)
 
     alpha_out_dir = os.path.join(opt.output,'alpha')
     cloth_seg_out_dir = os.path.join(opt.output,'cloth_seg')

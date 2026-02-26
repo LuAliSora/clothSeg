@@ -60,8 +60,12 @@ class ImgSet(data.Dataset):
         imgName=imgPath.name
         # print(imgName)
         img=Image.open(str(imgPath))
+        img_size = img.size
+        img = img.resize((768, 768), Image.BICUBIC)
+
         imgTensor=self.transfm(img)
-        return imgTensor, imgName
+        imgTensor = torch.unsqueeze(imgTensor, 0)#[1,3,H,W]
+        return imgName, img_size, imgTensor
     
     def __len__(self):
         return len(self.imgPaths)
