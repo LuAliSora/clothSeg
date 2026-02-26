@@ -14,6 +14,9 @@ import torchvision.transforms as transforms
 from collections import OrderedDict
 from options import opt
 
+from pathlib import Path
+from module.dataProcess import ImgSet
+
 
 def load_checkpoint(model, checkpoint_path):
     if not os.path.exists(checkpoint_path):
@@ -54,13 +57,7 @@ def get_palette(num_cls):
     return palette
 
 
-def generate_mask(input_image, net, palette, device = 'cpu'):
-
-    alpha_out_dir = os.path.join(opt.output,'alpha')
-    cloth_seg_out_dir = os.path.join(opt.output,'cloth_seg')
-
-    os.makedirs(alpha_out_dir, exist_ok=True)
-    os.makedirs(cloth_seg_out_dir, exist_ok=True)
+def generate_mask(image_tensor, net, device = 'cpu'):
 
     with torch.no_grad():
         output_tensor = net(image_tensor.to(device))
@@ -68,6 +65,16 @@ def generate_mask(input_image, net, palette, device = 'cpu'):
         output_tensor = torch.max(output_tensor, dim=1, keepdim=True)[1]
         output_tensor = torch.squeeze(output_tensor, dim=0)
         output_arr = output_tensor.cpu().numpy()
+
+    return output_arr
+
+
+def resSave(output_arr, imgName, img_size, palette):
+    alpha_out_dir = os.path.join(opt.output,'alpha')
+    cloth_seg_out_dir = os.path.join(opt.output,'cloth_seg')
+
+    os.makedirs(alpha_out_dir, exist_ok=True)
+    os.makedirs(cloth_seg_out_dir, exist_ok=True)
 
     classes_to_save = []
 
@@ -89,8 +96,6 @@ def generate_mask(input_image, net, palette, device = 'cpu'):
     cloth_seg.putpalette(palette)
     cloth_seg = cloth_seg.resize(img_size, Image.BICUBIC)
     cloth_seg.save(os.path.join(cloth_seg_out_dir, 'final_seg.png'))
-    return cloth_seg
-
 
 
 def check_or_download_model(file_path):
@@ -122,15 +127,17 @@ def main(args):
 
     palette = get_palette(4)
 
-    img = Image.open(args.image).convert('RGB')
+    myImgSet=ImgSet(Path('input'))
 
-    cloth_seg = generate_mask(img, net=model, palette=palette, device=device)
+    for imgName, img_size, imgTensor  in myImgSet:
+        output_arr = generate_mask(imgTensor, net=model, device=device)
+        resSave(output_arr, imgName, img_size, palette)
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Help to set arguments for Cloth Segmentation.')
-    parser.add_argument('--image', type=str, help='Path to the input image')
+    # parser.add_argument('--image', type=str, help='Path to the input image')
     parser.add_argument('--cuda', action='store_true', help='Enable CUDA (default: False)')
     parser.add_argument('--checkpoint_path', type=str, default='model/cloth_segm.pth', help='Path to the checkpoint file')
     args = parser.parse_args()
