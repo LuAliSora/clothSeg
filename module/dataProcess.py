@@ -72,7 +72,7 @@ class ImgSet(data.Dataset):
     
     def outputDir(self):
         dirs=[]
-        folders=['cloth_seg', 'Upper_body', 'Lower body', 'Full body']
+        folders=['fin_seg', 'Upper_body', 'Lower body', 'Full body']
         for i, name in enumerate(folders):
             f=Path('output')
             if i!=0:

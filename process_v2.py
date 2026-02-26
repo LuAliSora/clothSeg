@@ -69,12 +69,7 @@ def generate_mask(image_tensor, net, device = 'cpu'):
     return output_arr
 
 
-def resSave(output_arr, imgName, img_size, palette):
-    alpha_out_dir = os.path.join(opt.output,'alpha')
-    cloth_seg_out_dir = os.path.join(opt.output,'cloth_seg')
-
-    os.makedirs(alpha_out_dir, exist_ok=True)
-    os.makedirs(cloth_seg_out_dir, exist_ok=True)
+def resSave(output_arr, palette, imgName, img_size, resDirs):
 
     classes_to_save = []
 
@@ -89,13 +84,15 @@ def resSave(output_arr, imgName, img_size, palette):
         alpha_mask = alpha_mask[0]  # Selecting the first channel to make it 2D
         alpha_mask_img = Image.fromarray(alpha_mask, mode='L')
         alpha_mask_img = alpha_mask_img.resize(img_size, Image.BICUBIC)
-        alpha_mask_img.save(os.path.join(alpha_out_dir, f'{cls}.png'))
+        savePath=resDirs[cls]/f'{imgName}_{cls}.png'
+        alpha_mask_img.save(str(savePath))
 
     # Save final cloth segmentations
     cloth_seg = Image.fromarray(output_arr[0].astype(np.uint8), mode='P')
     cloth_seg.putpalette(palette)
     cloth_seg = cloth_seg.resize(img_size, Image.BICUBIC)
-    cloth_seg.save(os.path.join(cloth_seg_out_dir, 'final_seg.png'))
+    savePath=resDirs[0]/f'{imgName}_fin.png'
+    cloth_seg.save(str(savePath))
 
 
 def check_or_download_model(file_path):
@@ -129,9 +126,11 @@ def main(args):
 
     myImgSet=ImgSet(Path('input'))
 
+    resDirs=myImgSet.outputDir()
+
     for imgName, img_size, imgTensor  in myImgSet:
         output_arr = generate_mask(imgTensor, net=model, device=device)
-        resSave(output_arr, imgName, img_size, palette)
+        resSave(output_arr, palette, imgName, img_size, resDirs)
 
 
 
