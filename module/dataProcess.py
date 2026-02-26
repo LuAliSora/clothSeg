@@ -69,3 +69,18 @@ class ImgSet(data.Dataset):
     
     def __len__(self):
         return len(self.imgPaths)
+    
+    def outputDir(self):
+        dirs=[]
+        folders=['cloth_seg', 'Upper_body', 'Lower body', 'Full body']
+        for i, name in enumerate(folders):
+            f=Path('output')
+            if i!=0:
+                f=f/'alpha'
+            f=f/name
+            f.mkdir(parents=True,exist_ok=True)
+            dirs.append(f)
+        return dirs
+
+            
+
