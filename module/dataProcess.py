@@ -57,7 +57,7 @@ class ImgSet(data.Dataset):
 
     def __getitem__(self, index):
         imgPath=self.imgPaths[index]
-        imgName=imgPath.name
+        imgName=imgPath.stem
         # print(imgName)
         img=Image.open(str(imgPath))
         img_size = img.size
